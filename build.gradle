@@ -1,0 +1,40 @@
+plugins {
+	id 'org.springframework.boot' version '4.0.5' apply false
+	id 'io.spring.dependency-management' version '1.1.7' apply false
+}
+
+subprojects {
+	apply plugin: 'java-library'
+	apply plugin: 'io.spring.dependency-management'
+
+	group = 'com.dan'
+	version = '0.0.1-SNAPSHOT'
+
+	java {
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(21)
+		}
+	}
+
+	repositories {
+		mavenCentral()
+	}
+
+	// 모든 모듈이 Spring Boot가 관리하는 의존성 버전을 공유한다.
+	dependencyManagement {
+		imports {
+			mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+		}
+	}
+
+	tasks.withType(Test).configureEach {
+		useJUnitPlatform()
+	}
+}
+
+// 서비스 모듈은 공통 이벤트 모듈(common)에 의존한다.
+configure(subprojects.findAll { it.name.endsWith('-service') }) {
+	dependencies {
+		implementation project(':common')
+	}
+}
