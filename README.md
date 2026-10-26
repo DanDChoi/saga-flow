@@ -13,3 +13,12 @@ Kafka 기반 이벤트 드리븐 주문 처리 파이프라인. 주문 생성 �
 ## 상태
 
 설계/셋업 단계.
+
+## 로컬 인프라 실행
+
+```bash
+docker compose up -d
+```
+
+- Kafka (KRaft, 단일 브로커): `localhost:9092`
+- Kafka UI: http://localhost:8989
