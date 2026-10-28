@@ -22,3 +22,6 @@ docker compose up -d
 
 - Kafka (KRaft, 단일 브로커): `localhost:9092`
 - Kafka UI: http://localhost:8989
+- PostgreSQL: `localhost:5432` (user/password: `saga`/`saga`)
+  - 서비스별 DB: `order_db`, `inventory_db`, `payment_db`, `notification_db`
+  - 초기화 스크립트는 최초 기동 시에만 실행된다. 다시 만들려면 `docker compose down -v`
