@@ -1,0 +1,9 @@
+# test 프로파일: Docker 없이 돌 수 있도록 인메모리 DB를 사용한다.
+spring:
+  datasource:
+    url: jdbc:h2:mem:order_db;MODE=PostgreSQL
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
