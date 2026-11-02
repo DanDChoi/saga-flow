@@ -10,12 +10,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dan.sagaflow.order.domain.Order;
 import com.dan.sagaflow.order.domain.OrderRepository;
 import com.dan.sagaflow.order.domain.OrderStatus;
+import com.dan.sagaflow.order.application.OrderEventPublisher;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
@@ -25,6 +27,10 @@ class OrderControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
+    // Kafka 브로커 없이 테스트하기 위해 발행기는 목으로 대체한다.
+    @MockitoBean
+    OrderEventPublisher orderEventPublisher;
 
     @Autowired
     OrderRepository orderRepository;
