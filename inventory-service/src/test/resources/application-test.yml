@@ -1,0 +1,5 @@
+# test 프로파일: 브로커 없이 컨텍스트만 띄우도록 리스너 자동 시작을 끈다.
+spring:
+  kafka:
+    listener:
+      auto-startup: false
