@@ -1,0 +1,22 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: inventory-service
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      # 같은 group-id의 인스턴스끼리 파티션을 나눠 소비한다.
+      group-id: inventory-service
+      # 저장된 오프셋이 없으면 처음부터 읽는다. (서비스를 늦게 띄워도 이전 주문을 놓치지 않도록)
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 토픽에 여러 종류의 이벤트가 섞이므로 문자열로 받아 eventType을 보고 직접 역직렬화한다.
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
