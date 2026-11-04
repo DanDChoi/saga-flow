@@ -1,22 +1,36 @@
 package com.dan.sagaflow.inventory.application;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+import com.dan.sagaflow.inventory.domain.InsufficientStockException;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
 class OrderEventConsumerTest {
 
-    OrderEventConsumer consumer = new OrderEventConsumer(JsonMapper.builder().build());
+    static final String MESSAGE = """
+            {"eventId":"e-1","eventType":"ORDER_CREATED","aggregateId":"7",
+             "occurredAt":"2026-11-03T00:00:00Z",
+             "payload":{"orderId":7,"customerId":1,"productId":100,"quantity":3,"totalAmount":15000}}
+            """;
+
+    StockService stockService = mock(StockService.class);
+    OrderEventConsumer consumer = new OrderEventConsumer(JsonMapper.builder().build(), stockService);
 
     @Test
-    void ORDER_CREATED_메시지를_역직렬화해_처리한다() {
-        String message = """
-                {"eventId":"e-1","eventType":"ORDER_CREATED","aggregateId":"7",
-                 "occurredAt":"2026-11-03T00:00:00Z",
-                 "payload":{"orderId":7,"customerId":1,"productId":100,"quantity":3,"totalAmount":15000}}
-                """;
+    void ORDER_CREATED_메시지를_받으면_상품과_수량으로_재고를_차감한다() {
+        consumer.onOrderEvent(MESSAGE);
 
-        assertThatCode(() -> consumer.onOrderEvent(message)).doesNotThrowAnyException();
+        verify(stockService).decrease(100L, 3);
+    }
+
+    @Test
+    void 재고가_부족해도_예외를_밖으로_던지지_않는다() {
+        doThrow(new InsufficientStockException(100L, 3, 1)).when(stockService).decrease(100L, 3);
+
+        assertThatCode(() -> consumer.onOrderEvent(MESSAGE)).doesNotThrowAnyException();
     }
 }
