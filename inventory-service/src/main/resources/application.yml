@@ -22,6 +22,12 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       # 토픽에 여러 종류의 이벤트가 섞이므로 문자열로 받아 eventType을 보고 직접 역직렬화한다.
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        # 소비자가 타입 헤더(클래스명)에 의존하지 않도록 끈다. 서비스 간 결합을 줄이기 위함.
+        spring.json.add.type.headers: false
 
 management:
   endpoints:
