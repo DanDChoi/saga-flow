@@ -1,0 +1,21 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: payment-service
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      # 같은 group-id의 인스턴스끼리 파티션을 나눠 소비한다. 서비스마다 그룹이 달라야 각자 모든 이벤트를 받는다.
+      group-id: payment-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 토픽에 여러 종류의 이벤트가 섞이므로 문자열로 받아 eventType을 보고 직접 역직렬화한다.
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
