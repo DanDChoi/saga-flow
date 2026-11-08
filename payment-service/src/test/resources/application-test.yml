@@ -1,5 +1,12 @@
-# test 프로파일: 브로커 없이 컨텍스트만 띄우도록 리스너 자동 시작을 끈다.
+# test 프로파일: Docker 없이 돌 수 있도록 인메모리 DB를 쓰고, 브로커 없이 컨텍스트만 띄우도록 리스너 자동 시작을 끈다.
 spring:
+  datasource:
+    url: jdbc:h2:mem:payment_db;MODE=PostgreSQL
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
   kafka:
     listener:
       auto-startup: false
