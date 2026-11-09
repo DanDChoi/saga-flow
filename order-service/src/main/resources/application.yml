@@ -12,9 +12,14 @@ spring:
     hibernate:
       # 아직 마이그레이션 도구가 없으므로 엔티티 기준으로 스키마를 맞춘다. (학습용)
       ddl-auto: update
-
   kafka:
     bootstrap-servers: localhost:9092
+    consumer:
+      group-id: order-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 토픽에 여러 종류의 이벤트가 섞이므로 문자열로 받아 eventType을 보고 직접 역직렬화한다.
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
