@@ -60,6 +60,16 @@ public class Order {
         return new Order(customerId, productId, quantity, totalAmount);
     }
 
+    /** 재고/결제가 모두 성공했을 때. (전이 규칙 검증은 Day 19) */
+    public void complete() {
+        this.status = OrderStatus.COMPLETED;
+    }
+
+    /** Saga 중 어느 단계라도 실패했을 때. (전이 규칙 검증은 Day 19) */
+    public void cancel() {
+        this.status = OrderStatus.CANCELLED;
+    }
+
     @PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now();
