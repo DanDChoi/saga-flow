@@ -34,6 +34,22 @@ class StockTest {
     }
 
     @Test
+    void 재고를_되돌린다() {
+        Stock stock = new Stock(100L, 7);
+
+        stock.increase(3);
+
+        assertThat(stock.getQuantity()).isEqualTo(10);
+    }
+
+    @Test
+    void 복구_수량은_1_이상이어야_한다() {
+        Stock stock = new Stock(100L, 7);
+
+        assertThatThrownBy(() -> stock.increase(0)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void 차감_수량은_1_이상이어야_한다() {
         Stock stock = new Stock(100L, 2);
 

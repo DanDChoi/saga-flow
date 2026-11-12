@@ -26,7 +26,7 @@ class NotificationEventConsumerTest {
     @Test
     void PAYMENT_FAILED는_사유를_담아_기록한다() {
         consumer.onEvent(event("PAYMENT_FAILED", """
-                {"orderId":7,"reason":"결제 한도 초과"}"""));
+                {"orderId":7,"productId":100,"quantity":3,"reason":"결제 한도 초과"}"""));
 
         verify(notificationService).record(7L, "PAYMENT_FAILED", "주문 7의 결제에 실패했습니다. 사유: 결제 한도 초과");
     }

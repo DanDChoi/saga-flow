@@ -52,7 +52,7 @@ public class StockEventConsumer {
             eventPublisher.publishPaymentCompleted(payment);
         } else {
             log.warn("결제 실패 orderId={} reason={}", payment.getOrderId(), payment.getFailureReason());
-            eventPublisher.publishPaymentFailed(payment);
+            eventPublisher.publishPaymentFailed(payment, payload.productId(), payload.quantity());
         }
     }
 }

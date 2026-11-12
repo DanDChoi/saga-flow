@@ -2,7 +2,9 @@ package com.dan.sagaflow.inventory.application;
 
 import com.dan.sagaflow.common.event.EventEnvelope;
 import com.dan.sagaflow.common.event.OrderCreatedPayload;
+import com.dan.sagaflow.common.event.PaymentFailedPayload;
 import com.dan.sagaflow.common.event.StockFailedPayload;
+import com.dan.sagaflow.common.event.StockReleasedPayload;
 import com.dan.sagaflow.common.event.StockReservedPayload;
 import com.dan.sagaflow.common.event.Topics;
 import org.slf4j.Logger;
@@ -33,6 +35,11 @@ public class InventoryEventPublisher {
     public void publishStockFailed(OrderCreatedPayload order, String reason) {
         publish(EventEnvelope.of(StockFailedPayload.EVENT_TYPE, String.valueOf(order.orderId()),
                 new StockFailedPayload(order.orderId(), order.productId(), reason)));
+    }
+
+    public void publishStockReleased(PaymentFailedPayload failed) {
+        publish(EventEnvelope.of(StockReleasedPayload.EVENT_TYPE, String.valueOf(failed.orderId()),
+                new StockReleasedPayload(failed.orderId(), failed.productId(), failed.quantity())));
     }
 
     private void publish(EventEnvelope<?> event) {

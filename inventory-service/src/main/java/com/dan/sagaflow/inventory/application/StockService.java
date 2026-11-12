@@ -25,4 +25,12 @@ public class StockService {
                 .orElseThrow(() -> new InsufficientStockException(productId, quantity, 0));
         stock.decrease(quantity);
     }
+
+    /** 차감했던 재고를 되돌린다. 차감된 적이 있는 상품이어야 하므로 재고 행이 없으면 상태가 잘못된 것이다. */
+    @Transactional
+    public void increase(Long productId, int quantity) {
+        Stock stock = stockRepository.findByProductIdForUpdate(productId)
+                .orElseThrow(() -> new IllegalStateException("복구할 재고 행이 없음 productId=" + productId));
+        stock.increase(quantity);
+    }
 }
