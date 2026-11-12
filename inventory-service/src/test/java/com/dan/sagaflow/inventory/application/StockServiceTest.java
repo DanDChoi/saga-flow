@@ -31,6 +31,21 @@ class StockServiceTest {
     }
 
     @Test
+    void 차감했던_재고를_되돌리면_DB에_반영된다() {
+        stockRepository.save(new Stock(3L, 10));
+        stockService.decrease(3L, 4);
+
+        stockService.increase(3L, 4);
+
+        assertThat(stockRepository.findById(3L).orElseThrow().getQuantity()).isEqualTo(10);
+    }
+
+    @Test
+    void 재고_행이_없는_상품은_복구할_수_없다() {
+        assertThatThrownBy(() -> stockService.increase(998L, 1)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     void 재고가_부족하면_예외가_나고_DB는_그대로다() {
         stockRepository.save(new Stock(2L, 1));
 

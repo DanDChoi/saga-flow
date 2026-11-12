@@ -28,7 +28,7 @@ class PaymentEventConsumerTest {
         consumer.onPaymentEvent("""
                 {"eventId":"e-2","eventType":"PAYMENT_FAILED","aggregateId":"7",
                  "occurredAt":"2026-11-09T00:00:00Z",
-                 "payload":{"orderId":7,"reason":"결제 한도 초과"}}
+                 "payload":{"orderId":7,"productId":100,"quantity":3,"reason":"결제 한도 초과"}}
                 """);
 
         verify(orderService).cancelOrder(7L);

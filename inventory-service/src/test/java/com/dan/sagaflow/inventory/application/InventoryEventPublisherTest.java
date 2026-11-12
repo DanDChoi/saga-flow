@@ -9,7 +9,9 @@ import static org.mockito.Mockito.when;
 
 import com.dan.sagaflow.common.event.EventEnvelope;
 import com.dan.sagaflow.common.event.OrderCreatedPayload;
+import com.dan.sagaflow.common.event.PaymentFailedPayload;
 import com.dan.sagaflow.common.event.StockFailedPayload;
+import com.dan.sagaflow.common.event.StockReleasedPayload;
 import com.dan.sagaflow.common.event.StockReservedPayload;
 import com.dan.sagaflow.common.event.Topics;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +41,16 @@ class InventoryEventPublisherTest {
         verify(kafkaTemplate).send(eq(Topics.INVENTORY_EVENTS), eq("7"), captor.capture());
         assertThat(captor.getValue().eventType()).isEqualTo("STOCK_RESERVED");
         assertThat(captor.getValue().payload()).isEqualTo(new StockReservedPayload(7L, 100L, 3, 15000L));
+    }
+
+    @Test
+    void STOCK_RELEASED를_발행한다() {
+        publisher.publishStockReleased(new PaymentFailedPayload(7L, 100L, 3, "결제 한도 초과"));
+
+        ArgumentCaptor<EventEnvelope> captor = ArgumentCaptor.forClass(EventEnvelope.class);
+        verify(kafkaTemplate).send(eq(Topics.INVENTORY_EVENTS), eq("7"), captor.capture());
+        assertThat(captor.getValue().eventType()).isEqualTo("STOCK_RELEASED");
+        assertThat(captor.getValue().payload()).isEqualTo(new StockReleasedPayload(7L, 100L, 3));
     }
 
     @Test

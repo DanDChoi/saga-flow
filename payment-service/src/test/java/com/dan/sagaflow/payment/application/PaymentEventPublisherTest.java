@@ -46,11 +46,11 @@ class PaymentEventPublisherTest {
 
     @Test
     void PAYMENT_FAILED를_사유와_함께_발행한다() {
-        publisher.publishPaymentFailed(Payment.failed(7L, 5_000_000L, "결제 한도 초과"));
+        publisher.publishPaymentFailed(Payment.failed(7L, 5_000_000L, "결제 한도 초과"), 100L, 3);
 
         ArgumentCaptor<EventEnvelope> captor = ArgumentCaptor.forClass(EventEnvelope.class);
         verify(kafkaTemplate).send(eq(Topics.PAYMENT_EVENTS), eq("7"), captor.capture());
         assertThat(captor.getValue().eventType()).isEqualTo("PAYMENT_FAILED");
-        assertThat(captor.getValue().payload()).isEqualTo(new PaymentFailedPayload(7L, "결제 한도 초과"));
+        assertThat(captor.getValue().payload()).isEqualTo(new PaymentFailedPayload(7L, 100L, 3, "결제 한도 초과"));
     }
 }

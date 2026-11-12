@@ -30,9 +30,10 @@ public class PaymentEventPublisher {
                 new PaymentCompletedPayload(payment.getOrderId(), payment.getId(), payment.getAmount())));
     }
 
-    public void publishPaymentFailed(Payment payment) {
+    /** 재고 복구에 필요한 productId, quantity는 Payment에 없으므로 호출한 쪽이 넘겨준다. */
+    public void publishPaymentFailed(Payment payment, Long productId, int quantity) {
         publish(EventEnvelope.of(PaymentFailedPayload.EVENT_TYPE, String.valueOf(payment.getOrderId()),
-                new PaymentFailedPayload(payment.getOrderId(), payment.getFailureReason())));
+                new PaymentFailedPayload(payment.getOrderId(), productId, quantity, payment.getFailureReason())));
     }
 
     private void publish(EventEnvelope<?> event) {

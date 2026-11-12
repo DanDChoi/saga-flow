@@ -48,7 +48,7 @@ class StockEventConsumerTest {
 
         consumer.onInventoryEvent(RESERVED);
 
-        verify(eventPublisher).publishPaymentFailed(payment);
+        verify(eventPublisher).publishPaymentFailed(payment, 100L, 3);
     }
 
     @Test

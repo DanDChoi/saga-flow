@@ -38,7 +38,7 @@ POST /orders ─▶ order-service ──ORDER_CREATED──▶ inventory-service
 | 서비스 | 포트 | DB | 구독 토픽 | 발행 토픽 |
 |---|---|---|---|---|
 | order-service | 8081 | `order_db` | `payment-events` | `order-events` |
-| inventory-service | 8082 | `inventory_db` | `order-events` | `inventory-events` |
+| inventory-service | 8082 | `inventory_db` | `order-events`, `payment-events` | `inventory-events` |
 | payment-service | 8083 | `payment_db` | `inventory-events` | `payment-events` |
 | notification-service | 8084 | `notification_db` | `inventory-events`, `payment-events` | - |
 
@@ -83,7 +83,7 @@ curl -X POST localhost:8081/orders -H 'Content-Type: application/json' \
 ```
 
 총액 1,200,000원. `PAYMENT_FAILED`가 발행되어 주문은 `CANCELLED`가 된다.
-아직 재고 복구 보상이 없어서 재고는 차감된 채로 남는다. (Day 17에서 구현)
+inventory-service가 이 이벤트를 받아 차감했던 재고를 되돌리고(보상) `STOCK_RELEASED`를 발행하므로, 재고는 원래 수량으로 돌아온다.
 
 **C. 재고 부족**
 

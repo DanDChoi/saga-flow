@@ -35,6 +35,14 @@ public class Stock {
         this.quantity -= amount;
     }
 
+    /** 재고를 되돌린다. (보상 트랜잭션) */
+    public void increase(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("복구 수량은 1 이상이어야 합니다: " + amount);
+        }
+        this.quantity += amount;
+    }
+
     public Long getProductId() {
         return productId;
     }
