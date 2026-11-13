@@ -37,7 +37,7 @@ POST /orders ─▶ order-service ──ORDER_CREATED──▶ inventory-service
 
 | 서비스 | 포트 | DB | 구독 토픽 | 발행 토픽 |
 |---|---|---|---|---|
-| order-service | 8081 | `order_db` | `payment-events` | `order-events` |
+| order-service | 8081 | `order_db` | `inventory-events`, `payment-events` | `order-events` |
 | inventory-service | 8082 | `inventory_db` | `order-events`, `payment-events` | `inventory-events` |
 | payment-service | 8083 | `payment_db` | `inventory-events` | `payment-events` |
 | notification-service | 8084 | `notification_db` | `inventory-events`, `payment-events` | - |
@@ -92,7 +92,7 @@ curl -X POST localhost:8081/orders -H 'Content-Type: application/json' \
   -d '{"customerId": 1, "productId": 100, "quantity": 999, "unitPrice": 100}'
 ```
 
-`STOCK_FAILED`가 발행되고 알림이 기록된다. 주문은 아직 `CREATED`에 머문다. (Day 18에서 `CANCELLED` 처리)
+`STOCK_FAILED`가 발행되고 알림이 기록되며, 주문은 `CANCELLED`가 된다. 재고는 차감된 적이 없으므로 되돌릴 것도 없다.
 
 ### 3. 결과 확인
 
