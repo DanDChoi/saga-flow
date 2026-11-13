@@ -14,7 +14,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * payment-events 토픽을 구독해 결제 결과로 주문 상태를 갱신한다.
- * (재고 부족으로 인한 취소는 inventory-events를 구독하는 Day 18에서 추가)
+ * (재고 부족으로 인한 취소는 {@link InventoryEventConsumer}가 처리한다)
  */
 @Component
 public class PaymentEventConsumer {
