@@ -60,14 +60,22 @@ public class Order {
         return new Order(customerId, productId, quantity, totalAmount);
     }
 
-    /** 재고/결제가 모두 성공했을 때. (전이 규칙 검증은 Day 19) */
+    /** 재고/결제가 모두 성공했을 때. */
     public void complete() {
-        this.status = OrderStatus.COMPLETED;
+        changeStatus(OrderStatus.COMPLETED);
     }
 
-    /** Saga 중 어느 단계라도 실패했을 때. (전이 규칙 검증은 Day 19) */
+    /** Saga 중 어느 단계라도 실패했을 때. */
     public void cancel() {
-        this.status = OrderStatus.CANCELLED;
+        changeStatus(OrderStatus.CANCELLED);
+    }
+
+    /** 상태는 항상 이 메서드로만 바꾼다. 허용되지 않는 전이면 상태를 그대로 두고 예외를 던진다. */
+    private void changeStatus(OrderStatus next) {
+        if (!status.canTransitionTo(next)) {
+            throw new InvalidOrderStatusTransitionException(id, status, next);
+        }
+        this.status = next;
     }
 
     @PrePersist

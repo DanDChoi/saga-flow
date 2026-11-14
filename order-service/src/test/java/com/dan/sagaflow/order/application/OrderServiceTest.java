@@ -47,6 +47,17 @@ class OrderServiceTest {
     }
 
     @Test
+    void 취소된_주문에_완료_이벤트가_늦게_와도_예외_없이_취소_상태를_유지한다() {
+        Order order = orderRepository.save(Order.create(1L, 100L, 1, 5_000L));
+        orderService.cancelOrder(order.getId());
+
+        assertThatCode(() -> orderService.completeOrder(order.getId())).doesNotThrowAnyException();
+
+        assertThat(orderRepository.findById(order.getId()).orElseThrow().getStatus())
+                .isEqualTo(OrderStatus.CANCELLED);
+    }
+
+    @Test
     void 없는_주문은_예외_없이_넘어간다() {
         assertThatCode(() -> orderService.completeOrder(999_999L)).doesNotThrowAnyException();
     }
