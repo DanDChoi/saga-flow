@@ -3,6 +3,8 @@ package com.dan.sagaflow.order.application;
 import com.dan.sagaflow.order.api.CreateOrderRequest;
 import com.dan.sagaflow.order.domain.Order;
 import com.dan.sagaflow.order.domain.OrderRepository;
+import com.dan.sagaflow.order.domain.InvalidOrderStatusTransitionException;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,13 +36,25 @@ public class OrderService {
 
     @Transactional
     public void completeOrder(Long orderId) {
-        orderRepository.findById(orderId).ifPresentOrElse(Order::complete,
-                () -> log.warn("완료 처리할 주문이 없음 orderId={}", orderId));
+        changeStatus(orderId, Order::complete);
     }
 
     @Transactional
     public void cancelOrder(Long orderId) {
-        orderRepository.findById(orderId).ifPresentOrElse(Order::cancel,
-                () -> log.warn("취소 처리할 주문이 없음 orderId={}", orderId));
+        changeStatus(orderId, Order::cancel);
+    }
+
+    /**
+     * 늦게 도착했거나 중복된 이벤트로 허용되지 않는 전이가 요청될 수 있다.
+     * 이는 재시도해도 결과가 같은 일이므로 예외를 밖으로 던지지 않고 경고만 남긴다.
+     */
+    private void changeStatus(Long orderId, Consumer<Order> change) {
+        orderRepository.findById(orderId).ifPresentOrElse(order -> {
+            try {
+                change.accept(order);
+            } catch (InvalidOrderStatusTransitionException e) {
+                log.warn("주문 상태 전이 무시: {}", e.getMessage());
+            }
+        }, () -> log.warn("상태를 바꿀 주문이 없음 orderId={}", orderId));
     }
 }
