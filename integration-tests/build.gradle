@@ -1,0 +1,17 @@
+// 서비스들을 한 JVM에서 함께 띄워 이벤트 흐름 전체를 검증하는 통합 테스트 모듈. (Docker 필요)
+dependencies {
+	testImplementation project(':order-service')
+	testImplementation project(':inventory-service')
+	testImplementation project(':payment-service')
+	testImplementation project(':notification-service')
+	testImplementation project(':common')
+
+	// 각 서비스의 Repository를 테스트에서 직접 조회하기 위해 필요하다.
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	testImplementation 'org.springframework.boot:spring-boot-starter-kafka'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.testcontainers:testcontainers-kafka'
+	testRuntimeOnly 'com.h2database:h2'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}

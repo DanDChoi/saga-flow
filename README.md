@@ -118,3 +118,11 @@ Kafka UI(http://localhost:8989)의 Topics에서 `order-events`, `inventory-event
 - **주문이 `CREATED`에서 안 바뀐다**: 서비스 로그를 순서대로(order → inventory → payment) 확인한다. 어느 단계 로그가 끊겼는지가 곧 이벤트가 멈춘 지점이다.
 - **서비스가 DB에 연결하지 못한다**: 로컬 PostgreSQL이 5432를 이미 쓰고 있으면 compose의 postgres와 포트가 충돌한다. 로컬 PostgreSQL을 끄거나 compose의 호스트 포트를 바꾸고 각 서비스 `application.yml`의 datasource URL도 맞춘다.
 - **이미 쌓인 이벤트를 다시 처리하고 싶다**: 컨슈머 그룹의 offset을 지우거나 `docker compose down -v`로 처음부터 시작한다.
+
+## 통합 테스트
+
+`integration-tests` 모듈은 Testcontainers의 진짜 Kafka 하나에 네 서비스를 같은 JVM의 별도 Spring 컨텍스트로 띄워 이벤트 흐름 전체를 검증한다. DB는 H2 인메모리를 쓴다. Docker가 필요하며, 없으면 테스트는 실패하지 않고 건너뛴다.
+
+```bash
+./gradlew :integration-tests:test
+```
