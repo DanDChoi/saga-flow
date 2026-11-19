@@ -10,15 +10,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @ActiveProfiles("test")
 class OrderServiceTest {
-
-    // Kafka 브로커 없이 테스트하기 위해 발행기는 목으로 대체한다.
-    @MockitoBean
-    OrderEventPublisher orderEventPublisher;
 
     @Autowired
     OrderService orderService;
