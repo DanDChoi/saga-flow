@@ -1,9 +1,13 @@
 package com.dan.sagaflow.order.application;
 
+import com.dan.sagaflow.common.event.EventEnvelope;
+import com.dan.sagaflow.common.event.OrderCreatedPayload;
+import com.dan.sagaflow.common.event.Topics;
 import com.dan.sagaflow.order.api.CreateOrderRequest;
 import com.dan.sagaflow.order.domain.Order;
-import com.dan.sagaflow.order.domain.OrderRepository;
 import com.dan.sagaflow.order.domain.InvalidOrderStatusTransitionException;
+import com.dan.sagaflow.order.domain.OrderRepository;
+import com.dan.sagaflow.order.outbox.OutboxWriter;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +20,11 @@ public class OrderService {
     private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     private final OrderRepository orderRepository;
+    private final OutboxWriter outboxWriter;
 
-    private final OrderEventPublisher eventPublisher;
-
-    public OrderService(OrderRepository orderRepository, OrderEventPublisher eventPublisher) {
+    public OrderService(OrderRepository orderRepository, OutboxWriter outboxWriter) {
         this.orderRepository = orderRepository;
-        this.eventPublisher = eventPublisher;
+        this.outboxWriter = outboxWriter;
     }
 
     @Transactional
@@ -29,8 +32,11 @@ public class OrderService {
         long totalAmount = Math.multiplyExact(request.unitPrice(), (long) request.quantity());
         Order order = Order.create(request.customerId(), request.productId(), request.quantity(), totalAmount);
         Order saved = orderRepository.save(order);
-        // 주의: 아직 트랜잭션 안이라, 발행 후 커밋이 실패하면 없는 주문의 이벤트가 나간다. (Outbox로 해결 예정)
-        eventPublisher.publishOrderCreated(saved);
+        // Kafka로 바로 보내지 않고 같은 트랜잭션에서 outbox에 기록한다. 실제 발행은 릴레이가 맡는다. (Day 25)
+        String key = String.valueOf(saved.getId()); // 같은 주문의 이벤트는 같은 파티션 -> 순서 보장
+        outboxWriter.append(Topics.ORDER_EVENTS, EventEnvelope.of(OrderCreatedPayload.EVENT_TYPE, key,
+                new OrderCreatedPayload(saved.getId(), saved.getCustomerId(), saved.getProductId(),
+                        saved.getQuantity(), saved.getTotalAmount())));
         return saved;
     }
 
