@@ -43,15 +43,19 @@ abstract class SagaFlowIntegrationTest {
     static ConfigurableApplicationContext paymentContext;
     static ConfigurableApplicationContext notificationContext;
 
+    /** order-service는 outbox에 JSON으로 직렬화해 둔 문자열을 그대로 보내고, 나머지는 이벤트 객체를 JSON으로 직렬화한다. */
+    static final String STRING_SERIALIZER = "org.apache.kafka.common.serialization.StringSerializer";
+    static final String JSON_SERIALIZER = "org.springframework.kafka.support.serializer.JacksonJsonSerializer";
+
     static final HttpClient HTTP = HttpClient.newHttpClient();
 
     @BeforeAll
     static void startServices() {
         createTopics();
-        orderContext = start(OrderServiceApplication.class, "order-service", "order");
-        inventoryContext = start(InventoryServiceApplication.class, "inventory-service", "inventory");
-        paymentContext = start(PaymentServiceApplication.class, "payment-service", "payment");
-        notificationContext = start(NotificationServiceApplication.class, "notification-service", "notification");
+        orderContext = start(OrderServiceApplication.class, "order-service", "order", STRING_SERIALIZER);
+        inventoryContext = start(InventoryServiceApplication.class, "inventory-service", "inventory", JSON_SERIALIZER);
+        paymentContext = start(PaymentServiceApplication.class, "payment-service", "payment", JSON_SERIALIZER);
+        notificationContext = start(NotificationServiceApplication.class, "notification-service", "notification", JSON_SERIALIZER);
     }
 
     @AfterAll
@@ -77,12 +81,15 @@ abstract class SagaFlowIntegrationTest {
         }
     }
 
-    private static ConfigurableApplicationContext start(Class<?> application, String name, String dbName) {
+    private static ConfigurableApplicationContext start(
+            Class<?> application, String name, String dbName, String producerValueSerializer) {
         return new SpringApplicationBuilder(application).run(
                 "--server.port=0",
                 "--spring.application.name=" + name,
                 "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
                 "--spring.kafka.consumer.group-id=" + name,
+                "--spring.kafka.producer.value-serializer=" + producerValueSerializer,
+                "--spring.kafka.producer.properties.spring.json.add.type.headers=false",
                 "--spring.datasource.url=jdbc:h2:mem:" + dbName + "_it;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
                 "--spring.datasource.username=sa",
                 "--spring.datasource.password=",

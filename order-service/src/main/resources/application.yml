@@ -22,10 +22,12 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
-      properties:
-        # 소비자가 타입 헤더(클래스명)에 의존하지 않도록 끈다. 서비스 간 결합을 줄이기 위함.
-        spring.json.add.type.headers: false
+      # outbox에 이미 JSON으로 직렬화해 둔 문자열을 그대로 보낸다.
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+outbox:
+  relay:
+    poll-interval-ms: 500
 
 management:
   endpoints:
