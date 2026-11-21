@@ -7,6 +7,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -19,6 +20,8 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -30,8 +33,15 @@ class OutboxRelayTest {
 
     KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
 
+    @Autowired
+    PlatformTransactionManager transactionManager;
+
     OutboxRelay relay() {
-        return new OutboxRelay(outboxEventRepository, kafkaTemplate);
+        return relay(100);
+    }
+
+    OutboxRelay relay(int batchSize) {
+        return new OutboxRelay(outboxEventRepository, kafkaTemplate, new TransactionTemplate(transactionManager), batchSize);
     }
 
     OutboxEvent save(String eventId, String aggregateId) {
@@ -102,5 +112,31 @@ class OutboxRelayTest {
         relay().relay();
 
         verifyNoInteractions(kafkaTemplate);
+    }
+
+    @Test
+    void 배치보다_많이_쌓여_있으면_다음_주기를_기다리지_않고_이어서_모두_발행한다() {
+        OutboxEvent[] events = {save("e-1", "1"), save("e-2", "2"), save("e-3", "3"), save("e-4", "4"), save("e-5", "5")};
+        when(kafkaTemplate.send(anyString(), anyString(), anyString())).thenReturn(ok());
+
+        relay(2).relay(); // 배치 크기 2 -> 2 + 2 + 1개로 나눠 한 번의 호출에서 모두 처리
+
+        assertThat(events).allMatch(OutboxEvent::isPublished);
+        verify(kafkaTemplate, times(5)).send(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void 중간_배치에서_실패하면_거기서_멈춘다() {
+        OutboxEvent[] events = {save("e-1", "1"), save("e-2", "2"), save("e-3", "3")};
+        when(kafkaTemplate.send(eq("order-events"), eq("1"), anyString())).thenReturn(ok());
+        when(kafkaTemplate.send(eq("order-events"), eq("2"), anyString())).thenReturn(ok());
+        when(kafkaTemplate.send(eq("order-events"), eq("3"), anyString()))
+                .thenReturn(CompletableFuture.failedFuture(new IllegalStateException("브로커 연결 실패")));
+
+        relay(2).relay();
+
+        assertThat(events[0].isPublished()).isTrue();
+        assertThat(events[1].isPublished()).isTrue();
+        assertThat(events[2].isPublished()).isFalse();
     }
 }
