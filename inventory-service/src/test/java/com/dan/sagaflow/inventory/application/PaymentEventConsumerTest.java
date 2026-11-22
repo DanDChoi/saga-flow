@@ -11,20 +11,17 @@ import tools.jackson.databind.json.JsonMapper;
 class PaymentEventConsumerTest {
 
     StockService stockService = mock(StockService.class);
-    InventoryEventPublisher eventPublisher = mock(InventoryEventPublisher.class);
-    PaymentEventConsumer consumer =
-            new PaymentEventConsumer(JsonMapper.builder().build(), stockService, eventPublisher);
+    PaymentEventConsumer consumer = new PaymentEventConsumer(JsonMapper.builder().build(), stockService);
 
     @Test
-    void PAYMENT_FAILED를_받으면_재고를_되돌리고_STOCK_RELEASED를_발행한다() {
+    void PAYMENT_FAILED를_받으면_재고를_되돌린다() {
         consumer.onPaymentEvent("""
                 {"eventId":"e-1","eventType":"PAYMENT_FAILED","aggregateId":"7",
                  "occurredAt":"2026-11-12T00:00:00Z",
                  "payload":{"orderId":7,"productId":100,"quantity":3,"reason":"결제 한도 초과"}}
                 """);
 
-        verify(stockService).increase(100L, 3);
-        verify(eventPublisher).publishStockReleased(new PaymentFailedPayload(7L, 100L, 3, "결제 한도 초과"));
+        verify(stockService).release(new PaymentFailedPayload(7L, 100L, 3, "결제 한도 초과"));
     }
 
     @Test
@@ -35,6 +32,6 @@ class PaymentEventConsumerTest {
                  "payload":{"orderId":7,"paymentId":3,"amount":15000}}
                 """);
 
-        verifyNoInteractions(stockService, eventPublisher);
+        verifyNoInteractions(stockService);
     }
 }

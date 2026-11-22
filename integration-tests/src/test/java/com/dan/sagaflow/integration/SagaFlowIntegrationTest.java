@@ -43,7 +43,7 @@ abstract class SagaFlowIntegrationTest {
     static ConfigurableApplicationContext paymentContext;
     static ConfigurableApplicationContext notificationContext;
 
-    /** order-service는 outbox에 JSON으로 직렬화해 둔 문자열을 그대로 보내고, 나머지는 이벤트 객체를 JSON으로 직렬화한다. */
+    /** outbox를 쓰는 서비스(order, inventory)는 직렬화해 둔 JSON 문자열을 그대로 보내고, 나머지는 이벤트 객체를 JSON으로 직렬화한다. */
     static final String STRING_SERIALIZER = "org.apache.kafka.common.serialization.StringSerializer";
     static final String JSON_SERIALIZER = "org.springframework.kafka.support.serializer.JacksonJsonSerializer";
 
@@ -53,7 +53,7 @@ abstract class SagaFlowIntegrationTest {
     static void startServices() {
         createTopics();
         orderContext = start(OrderServiceApplication.class, "order-service", "order", STRING_SERIALIZER);
-        inventoryContext = start(InventoryServiceApplication.class, "inventory-service", "inventory", JSON_SERIALIZER);
+        inventoryContext = start(InventoryServiceApplication.class, "inventory-service", "inventory", STRING_SERIALIZER);
         paymentContext = start(PaymentServiceApplication.class, "payment-service", "payment", JSON_SERIALIZER);
         notificationContext = start(NotificationServiceApplication.class, "notification-service", "notification", JSON_SERIALIZER);
     }
