@@ -112,14 +112,14 @@ docker exec saga-postgres psql -U saga -d notification_db \
 # outbox (published_at이 비어 있으면 아직 Kafka로 발행되지 않은 이벤트)
 docker exec saga-postgres psql -U saga -d order_db \
   -c "SELECT id, event_type, aggregate_id, published_at FROM outbox_event ORDER BY id;"
-# inventory-service의 outbox도 같은 구조다. (-d inventory_db)
+# inventory-service(-d inventory_db), payment-service(-d payment_db)의 outbox도 같은 구조다.
 ```
 
 Kafka UI(http://localhost:8989)의 Topics에서 `order-events`, `inventory-events`, `payment-events`의 메시지도 볼 수 있다.
 
 ### 문제가 생기면
 
-- **주문이 `CREATED`에서 안 바뀐다**: `outbox_event`에 `published_at`이 빈 행이 쌓여 있다면 해당 서비스(order/inventory)가 Kafka로 발행하지 못하고 있는 것이다(브로커 확인). 그렇지 않다면 서비스 로그를 순서대로(order → inventory → payment) 확인한다. 어느 단계 로그가 끊겼는지가 곧 이벤트가 멈춘 지점이다.
+- **주문이 `CREATED`에서 안 바뀐다**: `outbox_event`에 `published_at`이 빈 행이 쌓여 있다면 해당 서비스(order/inventory/payment)가 Kafka로 발행하지 못하고 있는 것이다(브로커 확인). 그렇지 않다면 서비스 로그를 순서대로(order → inventory → payment) 확인한다. 어느 단계 로그가 끊겼는지가 곧 이벤트가 멈춘 지점이다.
 - **서비스가 DB에 연결하지 못한다**: 로컬 PostgreSQL이 5432를 이미 쓰고 있으면 compose의 postgres와 포트가 충돌한다. 로컬 PostgreSQL을 끄거나 compose의 호스트 포트를 바꾸고 각 서비스 `application.yml`의 datasource URL도 맞춘다.
 - **이미 쌓인 이벤트를 다시 처리하고 싶다**: 컨슈머 그룹의 offset을 지우거나 `docker compose down -v`로 처음부터 시작한다.
 
