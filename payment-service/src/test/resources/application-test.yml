@@ -10,3 +10,8 @@ spring:
   kafka:
     listener:
       auto-startup: false
+
+# 릴레이는 테스트에서 직접 호출한다. 백그라운드로 돌면 outbox 행을 먼저 발행해 버린다.
+outbox:
+  relay:
+    enabled: false
