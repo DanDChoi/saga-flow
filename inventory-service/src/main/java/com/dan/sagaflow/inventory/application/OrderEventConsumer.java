@@ -32,6 +32,6 @@ public class OrderEventConsumer {
                 jsonMapper.readValue(message, new TypeReference<EventEnvelope<OrderCreatedPayload>>() {});
         log.info("주문 이벤트 수신 eventId={} type={} payload={}", event.eventId(), event.eventType(), event.payload());
 
-        stockService.reserve(event.payload());
+        stockService.reserve(event.eventId(), event.payload());
     }
 }

@@ -1,5 +1,6 @@
 package com.dan.sagaflow.inventory.application;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -21,7 +22,7 @@ class PaymentEventConsumerTest {
                  "payload":{"orderId":7,"productId":100,"quantity":3,"reason":"결제 한도 초과"}}
                 """);
 
-        verify(stockService).release(new PaymentFailedPayload(7L, 100L, 3, "결제 한도 초과"));
+        verify(stockService).release(eq("e-1"), eq(new PaymentFailedPayload(7L, 100L, 3, "결제 한도 초과")));
     }
 
     @Test
