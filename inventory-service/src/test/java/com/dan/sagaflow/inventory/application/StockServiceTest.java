@@ -43,7 +43,7 @@ class StockServiceTest {
     void 재고를_확보하면_재고가_줄고_STOCK_RESERVED가_미발행으로_outbox에_쌓인다() {
         stockRepository.save(new Stock(1L, 10));
 
-        stockService.reserve(new OrderCreatedPayload(101L, 1L, 1L, 4, 20_000L));
+        stockService.reserve("e-101", new OrderCreatedPayload(101L, 1L, 1L, 4, 20_000L));
 
         assertThat(stockRepository.findById(1L).orElseThrow().getQuantity()).isEqualTo(6);
         List<OutboxEvent> events = outboxOf(101L);
@@ -58,7 +58,7 @@ class StockServiceTest {
     void 재고가_부족하면_재고는_그대로고_STOCK_FAILED가_outbox에_쌓인다() {
         stockRepository.save(new Stock(2L, 1));
 
-        stockService.reserve(new OrderCreatedPayload(102L, 1L, 2L, 2, 10_000L));
+        stockService.reserve("e-102", new OrderCreatedPayload(102L, 1L, 2L, 2, 10_000L));
 
         assertThat(stockRepository.findById(2L).orElseThrow().getQuantity()).isEqualTo(1);
         List<OutboxEvent> events = outboxOf(102L);
@@ -68,7 +68,7 @@ class StockServiceTest {
 
     @Test
     void 재고_행이_없는_상품도_STOCK_FAILED로_처리한다() {
-        stockService.reserve(new OrderCreatedPayload(103L, 1L, 999L, 1, 1_000L));
+        stockService.reserve("e-103", new OrderCreatedPayload(103L, 1L, 999L, 1, 1_000L));
 
         assertThat(outboxOf(103L)).extracting(OutboxEvent::getEventType).containsExactly("STOCK_FAILED");
     }
@@ -78,7 +78,7 @@ class StockServiceTest {
         stockRepository.save(new Stock(3L, 10));
 
         assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
-            stockService.reserve(new OrderCreatedPayload(104L, 1L, 3L, 4, 20_000L));
+            stockService.reserve("e-104", new OrderCreatedPayload(104L, 1L, 3L, 4, 20_000L));
             throw new IllegalStateException("커밋 직전 장애");
         })).isInstanceOf(IllegalStateException.class);
 
@@ -89,9 +89,9 @@ class StockServiceTest {
     @Test
     void 차감했던_재고를_되돌리면_재고가_복구되고_STOCK_RELEASED가_outbox에_쌓인다() {
         stockRepository.save(new Stock(4L, 10));
-        stockService.reserve(new OrderCreatedPayload(105L, 1L, 4L, 4, 20_000L));
+        stockService.reserve("e-105", new OrderCreatedPayload(105L, 1L, 4L, 4, 20_000L));
 
-        stockService.release(new PaymentFailedPayload(105L, 4L, 4, "결제 한도 초과"));
+        stockService.release("r-105", new PaymentFailedPayload(105L, 4L, 4, "결제 한도 초과"));
 
         assertThat(stockRepository.findById(4L).orElseThrow().getQuantity()).isEqualTo(10);
         assertThat(outboxOf(105L)).extracting(OutboxEvent::getEventType)
@@ -100,7 +100,7 @@ class StockServiceTest {
 
     @Test
     void 재고_행이_없는_상품은_복구할_수_없고_이벤트도_남기지_않는다() {
-        assertThatThrownBy(() -> stockService.release(new PaymentFailedPayload(106L, 998L, 1, "결제 실패")))
+        assertThatThrownBy(() -> stockService.release("r-106", new PaymentFailedPayload(106L, 998L, 1, "결제 실패")))
                 .isInstanceOf(IllegalStateException.class);
 
         assertThat(outboxOf(106L)).isEmpty();

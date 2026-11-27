@@ -1,5 +1,6 @@
 package com.dan.sagaflow.inventory.application;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -22,6 +23,6 @@ class OrderEventConsumerTest {
     void ORDER_CREATED_메시지를_받으면_주문_내용으로_재고를_확보한다() {
         consumer.onOrderEvent(MESSAGE);
 
-        verify(stockService).reserve(new OrderCreatedPayload(7L, 1L, 100L, 3, 15_000L));
+        verify(stockService).reserve(eq("e-1"), eq(new OrderCreatedPayload(7L, 1L, 100L, 3, 15_000L)));
     }
 }

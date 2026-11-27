@@ -38,6 +38,6 @@ public class PaymentEventConsumer {
         }
 
         PaymentFailedPayload payload = jsonMapper.treeToValue(event.payload(), PaymentFailedPayload.class);
-        stockService.release(payload);
+        stockService.release(event.eventId(), payload);
     }
 }
